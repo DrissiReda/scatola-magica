@@ -10,18 +10,21 @@ import {
 import { SortBy } from "@/app/_types/enums";
 import { getCurrentUser } from "@/app/_lib/current-user";
 import { auditLog } from "@/app/_lib/audit-log";
-import { scanFiles } from "@/app/_lib/file-scan";
+import { describeFile, scanFiles } from "@/app/_lib/file-scan";
 import {
   Access,
   IdBase,
   isValidName,
+  ScopedPath,
   scopedPath,
+  UPLOAD_DIR,
 } from "@/app/_lib/storage";
 import { dropShares } from "@/app/_lib/shares";
-import { relocate, sharedRootFiles } from "@/app/_lib/shared-items";
+import { relocate, sharedBases, sharedRootFiles } from "@/app/_lib/shared-items";
+import { isSearchReady, searchIndex } from "@/app/_lib/search-index";
 import { bustFileCache } from "@/app/_lib/cache/bust";
 import { pensieve } from "@/app/_lib/cache/pensieve";
-import { dirScopes, rootScope } from "@/app/_lib/cache/scopes";
+import { dirScopes, isWithin, rootScope } from "@/app/_lib/cache/scopes";
 import { logger } from "@/app/_lib/logger";
 import { FILES_MAX_PAGE_SIZE } from "@/app/_lib/constants";
 
@@ -63,6 +66,22 @@ const _clampPage = (value: unknown, fallback: number, max: number): number => {
   return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, max) : fallback;
 };
 
+const _indexed = async (bases: ScopedPath[], search: string) => {
+  const files: FileMetadata[] = [];
+
+  for (const hit of searchIndex(search, bases.map((base) => base.relative))) {
+    const base = bases.find((candidate) => isWithin(hit, candidate.relative));
+    const absolute = path.join(UPLOAD_DIR, hit);
+    const stats = await lstat(absolute).catch(() => null);
+    if (!base || !stats?.isFile()) continue;
+
+    const folder = path.relative(base.absolute, path.dirname(absolute)).split(path.sep).join("/");
+    files.push(describeFile(base, absolute, stats, folder || undefined));
+  }
+
+  return files;
+};
+
 export const getFiles = async (
   options: GetFilesOptions = {}
 ): Promise<ServerActionResponse<PaginatedResponse<FileMetadata>>> => {
@@ -76,19 +95,24 @@ export const getFiles = async (
     const sorter = SORTERS[options.sortBy ?? SortBy.DATE_DESC] ?? SORTERS[SortBy.DATE_DESC];
 
     const scoped = scopedPath(currentUser, options.folderPath, Access.READ);
-    const recursive = !!options.recursive || !!search;
+    const indexReady = isSearchReady();
+    const recursive = !!options.recursive || (!!search && !indexReady);
 
-    let files = await _cachedScan(scoped, scoped.absolute, recursive);
-    if (!options.folderPath && !recursive) {
+    let files = search && indexReady ? [] : await _cachedScan(scoped, scoped.absolute, recursive);
+    if (!options.folderPath && !recursive && !search) {
       files = [...files, ...(await sharedRootFiles(currentUser))];
     }
 
     if (search) {
-      files = files.filter(
+      // Until the index is built, name matching keeps search usable.
+      const byName = files.filter(
         (file) =>
           file.originalName.toLowerCase().includes(search) ||
           file.mimeType.toLowerCase().includes(search)
       );
+      const bases = options.folderPath ? [scoped] : [scoped, ...sharedBases(currentUser)];
+      const seen = new Set(byName.map((file) => file.id));
+      files = [...byName, ...(await _indexed(bases, search)).filter((file) => !seen.has(file.id))];
     }
 
     const sorted = [...files].sort(sorter);
