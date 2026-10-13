@@ -59,3 +59,15 @@ DISABLE_PASSWORD_LOGIN=true
 - `OIDC_GROUPS_SCOPE=groups` Optional. Scope to request for groups. Defaults to "groups". Set to empty string or "no" to disable for providers like Entra ID that don't support the groups scope.
 - `OIDC_LOGOUT_URL=https://authprovider.local/realms/master/logout` Optional. Custom logout URL for global logout.
 - `DISABLE_PASSWORD_LOGIN=true` Optional. When set to "true" and OIDC is properly configured, disables username/password login and only shows OIDC login. If OIDC is not configured, password login will still be available as a fallback.
+
+## Office collaboration (Optional)
+
+Opens office documents (doc/docx/odt/rtf, xls/xlsx/ods, ppt/pptx/odp) in OnlyOffice or Collabora Online. Everyone who opens the same file, owner or share recipient, lands in the same live session.
+
+- `OFFICE_PROVIDER=onlyoffice` or `collabora`.
+- `OFFICE_URL=https://office.example.com` Office server URL as seen by the browser.
+- `OFFICE_JWT_SECRET=secret` Required for OnlyOffice: must match the Document Server `JWT_SECRET`. Can be read from a file with `OFFICE_JWT_SECRET_FILE`.
+- `OFFICE_INTERNAL_URL=http://onlyoffice` Optional. Office server URL as seen by this app, when it differs from `OFFICE_URL`.
+- `OFFICE_APP_URL=http://scatola-magica:3000` Optional. This app's URL as seen by the office server. Defaults to `APP_URL`. Keep it identical for every instance, otherwise co-editing sessions split.
+
+Collabora must allow this app as WOPI host, e.g. `aliasgroup1=https://files.example.com`. It only lets the WOPI host embed the editor, so add any other hostname users browse with to `--o:net.frame_ancestors`. OnlyOffice must be allowed to reach private addresses when both run on the same network (`ALLOW_PRIVATE_IP_ADDRESS=true`).

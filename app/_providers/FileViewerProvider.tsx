@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
 interface FileViewerContextValue {
   openFile: (fileId: string, fileName: string, fileUrl: string) => void;
@@ -25,9 +26,12 @@ export const useFileViewer = () => {
 
 export default function FileViewerProvider({
   children,
+  officeExtensions = [],
 }: {
   children: ReactNode;
+  officeExtensions?: string[];
 }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [currentFile, setCurrentFile] = useState<{
     id: string;
@@ -36,9 +40,15 @@ export default function FileViewerProvider({
   } | null>(null);
 
   const openFile = useCallback((fileId: string, fileName: string, fileUrl: string) => {
+    const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+    if (officeExtensions.includes(extension)) {
+      router.push(`/office?id=${encodeURIComponent(fileId)}`);
+      return;
+    }
+
     setCurrentFile({ id: fileId, name: fileName, url: fileUrl });
     setIsOpen(true);
-  }, []);
+  }, [officeExtensions, router]);
 
   const closeViewer = useCallback(() => {
     setIsOpen(false);
