@@ -11,6 +11,7 @@ import ThemeProvider from "@/app/_providers/ThemeProvider";
 import ShortcutsProvider from "@/app/_providers/ShortcutsProvider";
 import ContextMenuProvider from "@/app/_providers/ContextMenuProvider";
 import FileViewerProvider from "@/app/_providers/FileViewerProvider";
+import { OFFICE_EXTENSIONS, officeConfig } from "@/app/_lib/office";
 import FileViewer from "@/app/_components/FeatureComponents/Modals/FileViewer";
 import { PreferencesProvider } from "@/app/_providers/PreferencesProvider";
 import { getUserRecord } from "@/app/_lib/current-user";
@@ -142,7 +143,7 @@ const RootLayout = async ({
               <FoldersProvider>
                 <ShortcutsProvider>
                   <ContextMenuProvider>
-                    <FileViewerProvider>
+                    <FileViewerProvider officeExtensions={officeConfig() ? OFFICE_EXTENSIONS : []}>
                       <UploadOverlayProvider>
                         {children}
                         <FileViewer />
