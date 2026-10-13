@@ -16,6 +16,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN yarn build
 
+FROM builder AS test
+RUN apk add --no-cache poppler-utils
+RUN yarn typecheck && yarn lint && yarn test
+
 FROM base AS runner
 WORKDIR /app
 

@@ -1,0 +1,20 @@
+issuer: http://dex:5556/dex
+storage:
+  type: memory
+web:
+  http: 0.0.0.0:5556
+oauth2:
+  skipApprovalScreen: true
+enablePasswordDB: true
+staticClients:
+  - id: scatola
+    secret: scatola-secret
+    name: Scatola
+    redirectURIs:
+      - http://lb/api/oidc/callback
+staticPasswords:
+  # password: "password"
+  - email: carol@example.com
+    hash: "$2b$10$6Bx5q3p9V2BWbav1Fg7ydeyfMZc.mOWB6wOyAzyTb2D/44FkUioim"
+    username: carol
+    userID: 08a8684b-db88-4b73-90a9-3cd1661f5466

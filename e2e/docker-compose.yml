@@ -1,0 +1,71 @@
+name: scatola-e2e
+
+# Full test stack (see FULL_DIVE.md): two app instances on one shared volume,
+# synced through Valkey, behind a round-robin load balancer, plus OnlyOffice or
+# Collabora and Dex. Browsers run inside the compose network.
+x-app: &app
+  image: scatola:e2e
+  user: "1000:1000"
+  volumes:
+    - ./data:/app/data
+  environment:
+    NODE_ENV: production
+    UPLOAD_DIR: /app/data/uploads
+    APP_URL: http://lb
+    VALKEY_URL: valkey://valkey:6379
+    OIDC_ISSUER: http://dex:5556/dex
+    OIDC_CLIENT_ID: scatola
+    OIDC_CLIENT_SECRET: scatola-secret
+    OFFICE_PROVIDER: ${OFFICE_PROVIDER:-onlyoffice}
+    OFFICE_URL: ${OFFICE_URL:-http://onlyoffice}
+    OFFICE_JWT_SECRET: e2e-office-secret
+  depends_on: [dex, valkey]
+
+services:
+  scatola:
+    <<: *app
+
+  scatola2:
+    <<: *app
+
+  lb:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [scatola, scatola2]
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+
+  onlyoffice:
+    image: onlyoffice/documentserver-de:9.4.1
+    environment:
+      JWT_ENABLED: "true"
+      JWT_SECRET: e2e-office-secret
+      ALLOW_PRIVATE_IP_ADDRESS: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost/healthcheck | grep -q true"]
+      interval: 10s
+      retries: 60
+    profiles: [onlyoffice]
+
+  collabora:
+    image: collabora/code:25.04.5.2.1
+    environment:
+      aliasgroup1: http://lb
+      # Tests also open editors straight on each instance.
+      extra_params: --o:ssl.enable=false --o:net.frame_ancestors=*
+      username: admin
+      password: admin
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9980/hosting/discovery"]
+      interval: 10s
+      retries: 60
+    profiles: [collabora]
+
+  dex:
+    image: ghcr.io/dexidp/dex:v2.43.1
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    volumes:
+      - ./dex.yaml:/etc/dex/config.yaml:ro

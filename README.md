@@ -193,6 +193,7 @@ Everything else lives in the [howto](howto/) folder:
 | [SHORTCUTS.md](howto/SHORTCUTS.md) | Keyboard shortcuts |
 | [TORRENTS.md](howto/TORRENTS.md) | Downloading, creating and seeding torrents |
 | [FILE-EXTENSIONS.md](howto/FILE-EXTENSIONS.md) | File types the viewer and editor understand |
+| [TESTING.md](TESTING.md) | End-to-end test scenario for every feature |
 
 ## License
 
