@@ -17,6 +17,7 @@ export interface ItemHandlers {
   onDelete?: () => void;
   onEncrypt?: () => void;
   onDecrypt?: () => void;
+  onShare?: () => void;
 }
 
 type ActionBlueprint = Omit<ItemAction, "run"> & { run?: () => void };
@@ -57,6 +58,14 @@ export const buildActions = (
       hint: "Download",
       group: ItemActionGroup.BASIC,
       run: handlers.onDownload,
+    },
+    {
+      id: ItemActionId.SHARE,
+      icon: "share",
+      label: "Share",
+      hint: "Share with people",
+      group: ItemActionGroup.BASIC,
+      run: handlers.onShare,
     },
     {
       id: ItemActionId.DECRYPT,

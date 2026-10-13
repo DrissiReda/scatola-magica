@@ -1,6 +1,6 @@
 "use server";
 
-import { lstat, mkdir, rename, unlink } from "fs/promises";
+import { lstat, mkdir, unlink } from "fs/promises";
 import path from "path";
 import {
   FileMetadata,
@@ -11,7 +11,14 @@ import { SortBy } from "@/app/_types/enums";
 import { getCurrentUser } from "@/app/_lib/current-user";
 import { auditLog } from "@/app/_lib/audit-log";
 import { scanFiles } from "@/app/_lib/file-scan";
-import { isValidName, scopedPath, userRoot } from "@/app/_lib/storage";
+import {
+  Access,
+  IdBase,
+  isValidName,
+  scopedPath,
+} from "@/app/_lib/storage";
+import { dropShares } from "@/app/_lib/shares";
+import { relocate, sharedRootFiles } from "@/app/_lib/shared-items";
 import { bustFileCache } from "@/app/_lib/cache/bust";
 import { pensieve } from "@/app/_lib/cache/pensieve";
 import { dirScopes, rootScope } from "@/app/_lib/cache/scopes";
@@ -31,12 +38,12 @@ interface GetFilesOptions {
   recursive?: boolean;
 }
 
-const _cachedScan = (ownerRoot: string, scanRoot: string, recursive: boolean) =>
+const _cachedScan = (base: IdBase, scanRoot: string, recursive: boolean) =>
   pensieve(
     "files",
-    [ownerRoot, scanRoot, recursive],
-    recursive ? [rootScope(ownerRoot)] : dirScopes(scanRoot),
-    () => scanFiles(ownerRoot, scanRoot, recursive)
+    [base.root, base.idPrefix, scanRoot, recursive],
+    recursive ? [rootScope(base.root)] : dirScopes(scanRoot),
+    () => scanFiles(base, scanRoot, recursive)
   );
 
 const SORTERS: Record<SortBy, (a: FileMetadata, b: FileMetadata) => number> = {
@@ -68,10 +75,13 @@ export const getFiles = async (
     const search = String(options.search ?? "").toLowerCase();
     const sorter = SORTERS[options.sortBy ?? SortBy.DATE_DESC] ?? SORTERS[SortBy.DATE_DESC];
 
-    const scanRoot = scopedPath(currentUser, options.folderPath).absolute;
+    const scoped = scopedPath(currentUser, options.folderPath, Access.READ);
     const recursive = !!options.recursive || !!search;
 
-    let files = await _cachedScan(userRoot(currentUser), scanRoot, recursive);
+    let files = await _cachedScan(scoped, scoped.absolute, recursive);
+    if (!options.folderPath && !recursive) {
+      files = [...files, ...(await sharedRootFiles(currentUser))];
+    }
 
     if (search) {
       files = files.filter(
@@ -117,6 +127,7 @@ export const deleteFile = async (id: string): Promise<ServerActionResponse> => {
     }
 
     await unlink(target.absolute);
+    await dropShares(target.relative);
     await auditLog("file:delete", { resource, success: true });
     await bustFileCache(target.absolute);
 
@@ -169,7 +180,7 @@ export const renameFile = async (
       return { success: false, error: "A file with this name already exists" };
     }
 
-    await rename(source.absolute, destination.absolute);
+    await relocate(source, destination);
     await auditLog("file:rename", {
       resource,
       details: { newName: name },
@@ -203,7 +214,7 @@ export const moveFile = async (
     const source = scopedPath(currentUser, fileId);
     resource = source.relative;
 
-    const targetDir = scopedPath(currentUser, targetFolderPath);
+    const targetDir = scopedPath(currentUser, targetFolderPath, Access.WRITE);
     const destination = scopedPath(
       currentUser,
       path.posix.join(targetFolderPath || "", path.basename(source.absolute))
@@ -214,7 +225,7 @@ export const moveFile = async (
     }
 
     await mkdir(targetDir.absolute, { recursive: true });
-    await rename(source.absolute, destination.absolute);
+    await relocate(source, destination);
     await auditLog("file:move", {
       resource,
       details: { targetPath: targetDir.relative },

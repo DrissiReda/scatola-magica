@@ -8,7 +8,7 @@ import { decryptFor, encryptFor, readKeyInfo } from "@/app/_lib/pgp";
 import { createArchiveToFile, extractArchive } from "@/app/_lib/archive";
 import { auditLog } from "@/app/_lib/audit-log";
 import { bustFileCache } from "@/app/_lib/cache/bust";
-import { isValidName, scopedPath, userRoot } from "@/app/_lib/storage";
+import { isValidName, scopedId, scopedPath } from "@/app/_lib/storage";
 import { logger } from "@/app/_lib/logger";
 
 const SCOPE = "file-encryption";
@@ -46,9 +46,6 @@ const _exists = async (absolute: string): Promise<boolean> => {
     return false;
   }
 };
-
-const _idOf = (user: CurrentUser, absolute: string): string =>
-  path.relative(userRoot(user), absolute).split(path.sep).join("/");
 
 const _tempZip = (dir: string, name: string): string =>
   path.join(dir, `.temp-${name}-${Date.now()}.zip`);
@@ -98,7 +95,7 @@ export const encryptFile = async (
     return {
       success: true,
       message: "File encrypted successfully",
-      encryptedFilePath: _idOf(user, encryptedPath),
+      encryptedFilePath: scopedId(source, encryptedPath),
     };
   } catch (error) {
     logger.error(SCOPE, `Failed to encrypt ${resource}`, error);
@@ -182,7 +179,7 @@ const _decryptInto = async (
     message: isFolder
       ? "Folder decrypted successfully"
       : "File decrypted successfully",
-    decryptedFilePath: _idOf(user, output.absolute),
+    decryptedFilePath: scopedId(output, output.absolute),
   };
 };
 
@@ -236,7 +233,7 @@ export const encryptFolder = async (
 
   try {
     const folder = scopedPath(user, folderId);
-    if (!folderId || folder.absolute === userRoot(user)) {
+    if (!folderId || folder.absolute === folder.root) {
       return { success: false, message: "Cannot encrypt the root folder" };
     }
 
@@ -280,7 +277,7 @@ export const encryptFolder = async (
     return {
       success: true,
       message: "Folder encrypted successfully",
-      encryptedFilePath: _idOf(user, encryptedPath),
+      encryptedFilePath: scopedId(folder, encryptedPath),
     };
   } catch (error) {
     logger.error(SCOPE, `Failed to encrypt folder ${folderId}`, error);

@@ -3,7 +3,7 @@ import { stat } from "fs/promises";
 import path from "path";
 import { getFileMimeType } from "@/app/_lib/file-utils";
 import { validateRequest } from "@/app/_lib/request-auth";
-import { scopedPath } from "@/app/_lib/storage";
+import { Access, scopedPath } from "@/app/_lib/storage";
 import {
   contentDisposition,
   isInlineType,
@@ -25,7 +25,7 @@ export const GET = async (
 
   try {
     const { id } = await params;
-    const target = scopedPath(user, decodeURIComponent(id));
+    const target = scopedPath(user, decodeURIComponent(id), Access.READ);
 
     const fileStats = await stat(target.absolute).catch(() => null);
     if (!fileStats?.isFile()) {

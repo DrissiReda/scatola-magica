@@ -6,7 +6,7 @@ import path from "path";
 import crypto from "crypto";
 import { pipeline } from "stream/promises";
 import type { StorageOwner } from "@/app/_lib/storage";
-import { isValidName, scopedPath, userRoot } from "@/app/_lib/storage";
+import { Access, isValidName, scopedId, scopedPath } from "@/app/_lib/storage";
 import { readAppSettings } from "@/app/_lib/app-settings-store";
 import { bustFileCache } from "@/app/_lib/cache/bust";
 import { logger } from "@/app/_lib/logger";
@@ -97,7 +97,11 @@ export const initUpload = async (
     return _fail("Invalid encryption parameters");
   }
 
-  const folder = scopedPath(owner, typeof input.folderPath === "string" ? input.folderPath : "");
+  const folder = scopedPath(
+    owner,
+    typeof input.folderPath === "string" ? input.folderPath : "",
+    Access.WRITE
+  );
 
   const existing = await loadUploadSession(owner.username, uploadId);
   if (existing) return { success: true };
@@ -111,7 +115,7 @@ export const initUpload = async (
     createdAt: Date.now(),
     chunkSize: _isPositiveInt(input.chunkSize) ? input.chunkSize : undefined,
     layout: _isPositiveInt(input.chunkSize) ? ChunkLayout.DIRECT : ChunkLayout.FILES,
-    folderPath: path.relative(userRoot(owner), folder.absolute),
+    folderPath: scopedId(folder, folder.absolute),
     e2eEncrypted,
     e2ePassword: e2eEncrypted ? (input.e2ePassword as string) : undefined,
     e2eSalt: e2eEncrypted ? (input.e2eSalt as number[]) : undefined,
@@ -157,9 +161,6 @@ const _sessionKey = (
     ? vaultKey(session.e2ePassword, Buffer.from(session.e2eSalt))
     : undefined;
 
-const _targetId = (owner: StorageOwner, absolute: string): string =>
-  path.relative(userRoot(owner), absolute).split(path.sep).join("/");
-
 const _promote = async (
   owner: StorageOwner,
   session: PersistedUploadSession
@@ -169,7 +170,7 @@ const _promote = async (
 
   await promoteFile(dataPath(dir), target.absolute);
   await bustFileCache(target.absolute);
-  return _targetId(owner, target.absolute);
+  return scopedId(target, target.absolute);
 };
 
 const _assemble = async (
@@ -204,7 +205,7 @@ const _assemble = async (
   }
 
   await bustFileCache(target.absolute);
-  return _targetId(owner, target.absolute);
+  return scopedId(target, target.absolute);
 };
 
 const _looksEncrypted = (chunk: Buffer): boolean =>

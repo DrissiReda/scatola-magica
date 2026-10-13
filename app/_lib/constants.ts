@@ -179,3 +179,5 @@ export const TOOLTIP = {
   GAP_PX: 8,
   FLIP_ZONE_PX: 40,
 } as const;
+
+export const SHARED_ROOT = "~shared";

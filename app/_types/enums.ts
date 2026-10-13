@@ -64,6 +64,7 @@ export enum ItemActionId {
   DOWNLOAD = "DOWNLOAD",
   DECRYPT = "DECRYPT",
   ENCRYPT = "ENCRYPT",
+  SHARE = "SHARE",
   DELETE = "DELETE",
 }
 

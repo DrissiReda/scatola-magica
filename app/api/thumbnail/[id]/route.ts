@@ -4,7 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import { getFileMimeType } from "@/app/_lib/file-utils";
 import { validateRequest } from "@/app/_lib/request-auth";
-import { resolveIn, scopedPath, THUMBNAIL_DIR } from "@/app/_lib/storage";
+import { Access, resolveIn, scopedPath, THUMBNAIL_DIR } from "@/app/_lib/storage";
 import {
   pathErrorResponse,
   SANDBOX_CSP,
@@ -51,7 +51,7 @@ export const GET = async (
 
   try {
     const { id } = await params;
-    const source = scopedPath(user, decodeURIComponent(id));
+    const source = scopedPath(user, decodeURIComponent(id), Access.READ);
     const mimeType = getFileMimeType(path.basename(source.absolute));
 
     if (!mimeType.startsWith("image/")) {

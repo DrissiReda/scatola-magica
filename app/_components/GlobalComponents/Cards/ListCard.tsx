@@ -25,6 +25,7 @@ interface ListCardProps {
   onEncrypt?: (id: string) => void;
   onDecrypt?: (id: string) => void;
   onCreateTorrent?: (id: string, name: string) => void;
+  onShare?: (id: string, name: string) => void;
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
@@ -46,6 +47,7 @@ export default function ListCard({
   onEncrypt,
   onDecrypt,
   onCreateTorrent,
+  onShare,
   isSelectionMode = false,
   isSelected = false,
   onToggleSelect,
@@ -126,12 +128,14 @@ export default function ListCard({
         onFileEncrypt: isFolder ? undefined : onEncrypt,
         onFileDecrypt: isFolder ? undefined : onDecrypt,
         onFileCreateTorrent: isFolder ? undefined : onCreateTorrent,
+        onFileShare: isFolder ? undefined : onShare,
         onFileDelete: isFolder ? undefined : onDelete,
         onFolderRename: isFolder && onRename ? handleRenameStart : undefined,
         onFolderDownload: isFolder ? onDownload : undefined,
         onFolderEncrypt: isFolder ? onEncrypt : undefined,
         onFolderDecrypt: isFolder ? onDecrypt : undefined,
         onFolderCreateTorrent: isFolder ? onCreateTorrent : undefined,
+        onFolderShare: isFolder ? onShare : undefined,
         onFolderDelete: isFolder ? onDelete : undefined,
       }
     );
@@ -358,6 +362,11 @@ export default function ListCard({
             <Icon icon="p2p" size="xxs" className="text-primary text-xs" />
           </div>
         )}
+        {item.shared && (
+          <div className="absolute -bottom-1 -right-1 bg-surface rounded-full flex p-0.5">
+            <Icon icon="share" size="xxs" className="text-primary" title="Shared" />
+          </div>
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
@@ -398,6 +407,7 @@ export default function ListCard({
             onMove={onMove ? () => onMove(itemId) : undefined}
             onDownload={onDownload ? () => onDownload(itemId) : undefined}
             onDelete={onDelete ? () => onDelete(itemId) : undefined}
+            onShare={onShare ? () => onShare(itemId, itemName) : undefined}
             onEncrypt={
               isFolder
                 ? onEncrypt

@@ -3,7 +3,7 @@
 import { lstat, writeFile } from "fs/promises";
 import { getCurrentUser } from "@/app/_lib/current-user";
 import { decryptPath } from "@/app/_lib/path-encryption";
-import { scopedPath } from "@/app/_lib/storage";
+import { Access, scopedPath } from "@/app/_lib/storage";
 import { bustFileCache } from "@/app/_lib/cache/bust";
 import { logger } from "@/app/_lib/logger";
 
@@ -20,7 +20,7 @@ export const saveFileContent = async (fileId: string, content: string) => {
   }
 
   try {
-    const target = scopedPath(user, await decryptPath(fileId));
+    const target = scopedPath(user, await decryptPath(fileId), Access.WRITE);
 
     if (!(await lstat(target.absolute)).isFile()) {
       return { success: false, error: "Not a file" };

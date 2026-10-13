@@ -6,6 +6,7 @@ import type { DiskChange } from "@/app/_lib/cache/types";
 import { isWatching } from "@/app/_lib/disk-watch";
 import { LiveEvent } from "@/app/_lib/live-events";
 import { userRoot } from "@/app/_lib/storage";
+import { sharesFor } from "@/app/_lib/shares";
 import { logger } from "@/app/_lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -47,9 +48,9 @@ const STREAM_HEADERS = {
 
 const _frame = (event: LiveEvent): string => `event: ${event}\ndata: {}\n\n`;
 
-const _concerns = (change: DiskChange, rootRelative: string): boolean =>
+const _concerns = (change: DiskChange, roots: string[]): boolean =>
   change.everything ||
-  change.paths.some((entry) => isWithin(entry, rootRelative));
+  change.paths.some((entry) => roots.some((root) => isWithin(entry, root)));
 
 export const GET = async (request: NextRequest) => {
   const user = await validateRequest(request);
@@ -82,7 +83,8 @@ export const GET = async (request: NextRequest) => {
       };
 
       const unlisten = cacheBackend().listen((change) => {
-        if (_concerns(change, rootRelative)) send(_frame(LiveEvent.CHANGE));
+        const roots = [rootRelative, ...sharesFor(user.username).map((s) => s.path)];
+        if (_concerns(change, roots)) send(_frame(LiveEvent.CHANGE));
       });
 
       const recheck = async () => {
