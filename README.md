@@ -112,6 +112,7 @@ On your first visit, you'll be redirected to `/auth/setup` to create your admin 
 - **Upload folders** You can literally drag a folder on the screen and it'll magically upload it in the right place, with all subfolders/files within it.
 - **Responsive Design:** Works seamlessly on desktop, tablet, and mobile devices.
 - **File-Based:** No database needed! Everything is stored in simple files and folders in a single data directory.
+- **Sharing:** Share any file or folder with other users, read-only or editable, or with anyone through a view-only public link. Shared items show up in the recipients' files like their own, with a small share badge.
 
 ## Data storage
 

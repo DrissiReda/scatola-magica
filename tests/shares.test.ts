@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "fs";
 import path from "path";
-import { Access, scopedPath, UPLOAD_DIR } from "@/app/_lib/storage";
+import { Access, linkedPath, scopedPath, UPLOAD_DIR } from "@/app/_lib/storage";
 import { dropShares, moveShares, readShares, saveShare } from "@/app/_lib/shares";
 import { sharedRootFiles, sharedRootFolders } from "@/app/_lib/shared-items";
 import { scanFiles } from "@/app/_lib/file-scan";
@@ -18,7 +18,7 @@ writeFileSync(path.join(UPLOAD_DIR, "alice/report.txt"), "report");
 const shareId = (relative: string) => readShares().find((s) => s.path === relative)!.id;
 
 test("read-only folder share", async () => {
-  await saveShare("alice", "alice/Docs", ["bob"], false);
+  await saveShare("alice", "alice/Docs", ["bob"], false, false);
   const id = `~shared/${shareId("alice/Docs")}`;
 
   assert.equal(scopedPath(bob, id, Access.READ).absolute, path.join(UPLOAD_DIR, "alice/Docs"));
@@ -31,7 +31,7 @@ test("read-only folder share", async () => {
 });
 
 test("editable share protects its root", async () => {
-  await saveShare("alice", "alice/Docs", ["bob"], true);
+  await saveShare("alice", "alice/Docs", ["bob"], true, false);
   const id = `~shared/${shareId("alice/Docs")}`;
 
   assert.ok(scopedPath(bob, id, Access.WRITE));
@@ -40,7 +40,7 @@ test("editable share protects its root", async () => {
 });
 
 test("shared items show up in the recipient root with prefixed ids", async () => {
-  await saveShare("alice", "alice/report.txt", ["bob"], false);
+  await saveShare("alice", "alice/report.txt", ["bob"], false, false);
   const folders = await sharedRootFolders(bob);
   const files = await sharedRootFiles(bob);
 
@@ -59,6 +59,26 @@ test("shares follow renames and disappear on delete", async () => {
   assert.ok(readShares().some((s) => s.path === "alice/Papers"));
 
   await dropShares("alice/Papers");
-  await saveShare("alice", "alice/report.txt", [], false);
+  await saveShare("alice", "alice/report.txt", [], false, false);
+  assert.deepEqual(readShares(), []);
+});
+
+test("public links are read-only views of one item and can be revoked", async () => {
+  await saveShare("alice", "alice/Docs", [], false, true);
+  const link = readShares()[0].link!;
+
+  assert.equal(linkedPath(link, "a.txt").relative, "alice/Docs/a.txt");
+  assert.throws(() => linkedPath(link, "../report.txt"));
+  assert.throws(() => linkedPath("nope"));
+  assert.throws(() => linkedPath(""));
+  assert.deepEqual(await sharedRootFolders(bob), [], "link-only shares stay out of user roots");
+
+  await saveShare("alice", "alice/Docs", ["bob"], false, true);
+  assert.equal(readShares()[0].link, link, "editing users keeps the link");
+
+  await saveShare("alice", "alice/Docs", ["bob"], false, false);
+  assert.throws(() => linkedPath(link));
+
+  await saveShare("alice", "alice/Docs", [], false, false);
   assert.deepEqual(readShares(), []);
 });
