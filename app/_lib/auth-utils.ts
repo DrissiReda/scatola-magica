@@ -5,7 +5,9 @@ import crypto from "crypto";
 import type { PublicUser, User } from "@/app/_types";
 import { readJson, updateJson } from "@/app/_lib/json-store";
 
-export const CONFIG_DIR = path.join(process.cwd(), "data", "config");
+export const CONFIG_DIR = path.resolve(
+  process.env.CONFIG_DIR || path.join(process.cwd(), "data", "config")
+);
 export const AVATARS_DIR = path.join(CONFIG_DIR, "avatars");
 
 const USERS_FILE = path.join(CONFIG_DIR, "users.json");

@@ -38,6 +38,7 @@ export type AuditLogAction =
   | "user:delete"
   | "user:update"
   | "user:role_change"
+  | "share:update"
   | "settings:update"
   | "torrent:create"
   | "torrent:add"

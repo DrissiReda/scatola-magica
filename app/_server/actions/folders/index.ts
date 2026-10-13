@@ -1,6 +1,6 @@
 "use server";
 
-import { lstat, mkdir, rename, rm } from "fs/promises";
+import { lstat, mkdir, rm } from "fs/promises";
 import path from "path";
 import { ServerActionResponse } from "@/app/_types";
 import { getCurrentUser } from "@/app/_lib/current-user";
@@ -13,11 +13,16 @@ import {
   sortFolderTree,
 } from "@/app/_lib/folder-scan";
 import {
+  Access,
+  IdBase,
   isValidName,
+  ownBase,
+  SHARED_ROOT,
   scopedPath,
-  userRoot,
   UPLOAD_DIR,
 } from "@/app/_lib/storage";
+import { dropShares } from "@/app/_lib/shares";
+import { relocate, sharedRootFolders } from "@/app/_lib/shared-items";
 import { bustFileCache } from "@/app/_lib/cache/bust";
 import { pensieve } from "@/app/_lib/cache/pensieve";
 import { dirScopes, rootScope } from "@/app/_lib/cache/scopes";
@@ -28,14 +33,14 @@ export type { FolderMetadata } from "@/app/_lib/folder-scan";
 const SCOPE = "folder-actions";
 const UNAUTHORIZED = { success: false, error: "Unauthorized" };
 
-const _cachedTree = (ownerRoot: string) =>
-  pensieve("folder-tree", [ownerRoot], [rootScope(ownerRoot)], async () =>
-    sortFolderTree(await scanFolders(ownerRoot, ownerRoot, true))
+const _cachedTree = (base: IdBase) =>
+  pensieve("folder-tree", [base.root, base.idPrefix], [rootScope(base.root)], () =>
+    scanFolders(base, base.root, true)
   );
 
-const _cachedLevel = (ownerRoot: string, dirAbs: string) =>
-  pensieve("folder-level", [ownerRoot, dirAbs], dirScopes(dirAbs), async () =>
-    (await scanFolders(ownerRoot, dirAbs, false)).sort((a, b) =>
+const _cachedLevel = (base: IdBase, dirAbs: string) =>
+  pensieve("folder-level", [base.root, base.idPrefix, dirAbs], dirScopes(dirAbs), async () =>
+    (await scanFolders(base, dirAbs, false)).sort((a, b) =>
       a.name.localeCompare(b.name)
     )
   );
@@ -71,9 +76,18 @@ export const getAllFolders = async (): Promise<
   if (!currentUser) return UNAUTHORIZED;
 
   try {
-    const root = userRoot(currentUser);
-    await mkdir(root, { recursive: true });
-    return { success: true, data: await _cachedTree(root) };
+    const base = ownBase(currentUser);
+    await mkdir(base.root, { recursive: true });
+
+    const shared = await sharedRootFolders(currentUser);
+    const trees = await Promise.all([
+      _cachedTree(base),
+      ...shared.map((folder) =>
+        _cachedTree(scopedPath(currentUser, folder.id, Access.READ))
+      ),
+    ]);
+
+    return { success: true, data: sortFolderTree([...shared, ...trees.flat()]) };
   } catch (error) {
     logger.error(SCOPE, "Failed to fetch folders", error);
     return { success: false, error: "Failed to fetch folders" };
@@ -87,10 +101,11 @@ export const getFolders = async (
   if (!currentUser) return UNAUTHORIZED;
 
   try {
-    const root = userRoot(currentUser);
-    const parent = scopedPath(currentUser, parentId ?? "");
-    const data = await _cachedLevel(root, parent.absolute);
-    return { success: true, data };
+    const parent = scopedPath(currentUser, parentId ?? "", Access.READ);
+    const data = await _cachedLevel(parent, parent.absolute);
+    if (parentId) return { success: true, data };
+
+    return { success: true, data: [...data, ...(await sharedRootFolders(currentUser))] };
   } catch (error) {
     logger.error(SCOPE, "Failed to fetch folders", error);
     return { success: false, error: "Failed to fetch folders" };
@@ -104,15 +119,12 @@ export const getFolderById = async (
   if (!currentUser) return UNAUTHORIZED;
 
   try {
-    const folder = scopedPath(currentUser, id);
+    const folder = scopedPath(currentUser, id, Access.READ);
     if (!id || !(await _isDirectory(folder.absolute))) {
       return { success: false, error: "Folder not found" };
     }
 
-    return {
-      success: true,
-      data: await describeFolder(userRoot(currentUser), folder.absolute),
-    };
+    return { success: true, data: await describeFolder(folder, folder.absolute) };
   } catch (error) {
     logger.warn(SCOPE, `Failed to read folder ${id}`, error);
     return { success: false, error: "Folder not found" };
@@ -147,7 +159,7 @@ export const createFolder = async (
 
     return {
       success: true,
-      data: await describeFolder(userRoot(currentUser), target.absolute),
+      data: await describeFolder(target, target.absolute),
     };
   } catch (error) {
     logger.error(SCOPE, "Failed to create folder", error);
@@ -187,7 +199,7 @@ export const updateFolder = async (
       return { success: false, error: "A folder with this name already exists" };
     }
 
-    await rename(source.absolute, destination.absolute);
+    await relocate(source, destination);
     await auditLog("folder:rename", {
       resource: source.relative,
       details: { newName: folderName },
@@ -197,7 +209,7 @@ export const updateFolder = async (
 
     return {
       success: true,
-      data: await describeFolder(userRoot(currentUser), destination.absolute),
+      data: await describeFolder(destination, destination.absolute),
     };
   } catch (error) {
     logger.error(SCOPE, `Failed to rename folder ${id}`, error);
@@ -211,7 +223,7 @@ export const deleteFolder = async (id: string): Promise<ServerActionResponse> =>
 
   try {
     const target = scopedPath(currentUser, id);
-    if (!id || target.absolute === userRoot(currentUser)) {
+    if (!id || target.absolute === target.root) {
       return { success: false, error: "Cannot delete the root folder" };
     }
 
@@ -220,6 +232,7 @@ export const deleteFolder = async (id: string): Promise<ServerActionResponse> =>
     }
 
     await rm(target.absolute, { recursive: true });
+    await dropShares(target.relative);
     await auditLog("folder:delete", { resource: target.relative, success: true });
     await bustFileCache(target.absolute);
 
@@ -236,14 +249,16 @@ export const getFolderPath = async (
   const currentUser = await getCurrentUser();
   if (!currentUser) return UNAUTHORIZED;
 
-  const root = userRoot(currentUser);
   const parts = String(folderId ?? "").split("/").filter(Boolean);
   const breadcrumbs: FolderMetadata[] = [];
 
   for (let i = 0; i < parts.length; i++) {
+    const crumbId = parts.slice(0, i + 1).join("/");
+    if (crumbId === SHARED_ROOT) continue;
+
     try {
-      const crumb = scopedPath(currentUser, parts.slice(0, i + 1).join("/"));
-      breadcrumbs.push(await describeFolder(root, crumb.absolute));
+      const crumb = scopedPath(currentUser, crumbId, Access.READ);
+      breadcrumbs.push(await describeFolder(crumb, crumb.absolute));
     } catch (error) {
       logger.warn(SCOPE, `Skipping breadcrumb for ${folderId}`, error);
     }

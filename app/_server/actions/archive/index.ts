@@ -3,7 +3,7 @@
 import { lstat } from "fs/promises";
 import { getCurrentUser } from "@/app/_lib/current-user";
 import { decryptPath } from "@/app/_lib/path-encryption";
-import { scopedPath } from "@/app/_lib/storage";
+import { Access, scopedPath } from "@/app/_lib/storage";
 import { listArchive } from "@/app/_lib/archive";
 import { logger } from "@/app/_lib/logger";
 import {
@@ -23,7 +23,7 @@ export const peekArchive = async (
   }
 
   try {
-    const target = scopedPath(user, await decryptPath(fileId));
+    const target = scopedPath(user, await decryptPath(fileId), Access.READ);
     const stats = await lstat(target.absolute);
 
     if (!stats.isFile()) {

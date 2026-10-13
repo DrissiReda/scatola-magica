@@ -5,7 +5,7 @@ import path from "path";
 import { PassThrough, Readable } from "stream";
 import { validateRequest } from "@/app/_lib/request-auth";
 import { decryptPathFor } from "@/app/_lib/path-encryption";
-import { ScopedPath, scopedPath } from "@/app/_lib/storage";
+import { Access, ScopedPath, scopedPath } from "@/app/_lib/storage";
 import { contentDisposition, pathErrorResponse } from "@/app/_lib/file-response";
 import { logger } from "@/app/_lib/logger";
 
@@ -34,7 +34,7 @@ export const POST = async (request: NextRequest) => {
     const targets: ScopedPath[] = [];
     for (const item of paths) {
       const decrypted = await decryptPathFor(user.username, String(item));
-      const target = scopedPath(user, decrypted);
+      const target = scopedPath(user, decrypted, Access.READ);
 
       if (!(await stat(target.absolute).catch(() => null))) {
         return NextResponse.json({ error: "Path not found" }, { status: 404 });

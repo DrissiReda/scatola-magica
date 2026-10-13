@@ -28,6 +28,7 @@ interface GridCardProps {
   onEncrypt?: (id: string) => void;
   onDecrypt?: (id: string) => void;
   onCreateTorrent?: (id: string, name: string) => void;
+  onShare?: (id: string, name: string) => void;
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
@@ -49,6 +50,7 @@ export default function GridCard({
   onEncrypt,
   onDecrypt,
   onCreateTorrent,
+  onShare,
   isSelectionMode = false,
   isSelected = false,
   onToggleSelect,
@@ -129,12 +131,14 @@ export default function GridCard({
         onFileEncrypt: isFolder ? undefined : onEncrypt,
         onFileDecrypt: isFolder ? undefined : onDecrypt,
         onFileCreateTorrent: isFolder ? undefined : onCreateTorrent,
+        onFileShare: isFolder ? undefined : onShare,
         onFileDelete: isFolder ? undefined : onDelete,
         onFolderRename: isFolder && onRename ? handleRenameStart : undefined,
         onFolderDownload: isFolder ? onDownload : undefined,
         onFolderEncrypt: isFolder ? onEncrypt : undefined,
         onFolderDecrypt: isFolder ? onDecrypt : undefined,
         onFolderCreateTorrent: isFolder ? onCreateTorrent : undefined,
+        onFolderShare: isFolder ? onShare : undefined,
         onFolderDelete: isFolder ? onDelete : undefined,
       }
     );
@@ -451,6 +455,12 @@ export default function GridCard({
         </p>
       </div>
 
+      {item.shared && !isSelectionMode && (
+        <div className="absolute top-2 left-2 flex">
+          <Icon icon="share" size="xs" className="text-primary" title="Shared" />
+        </div>
+      )}
+
       {!isSelectionMode && (
         <div className="absolute top-2 right-2">
           <ItemActionsMenu
@@ -459,6 +469,7 @@ export default function GridCard({
             onMove={onMove ? () => onMove(itemId) : undefined}
             onDownload={onDownload ? () => onDownload(itemId) : undefined}
             onDelete={onDelete ? () => onDelete(itemId) : undefined}
+            onShare={onShare ? () => onShare(itemId, itemName) : undefined}
             onEncrypt={
               isFolder
                 ? onEncrypt

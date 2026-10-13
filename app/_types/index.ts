@@ -12,6 +12,7 @@ export interface FileMetadata {
   lastModified: number;
   path: string;
   folderPath?: string;
+  shared?: boolean;
 }
 
 export interface UploadProgress {

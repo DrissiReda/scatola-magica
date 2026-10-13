@@ -3,7 +3,7 @@
 import { getCurrentUser } from "@/app/_lib/current-user";
 import { getUserRecord } from "@/app/_lib/current-user";
 import { readKeyInfo } from "@/app/_lib/pgp";
-import { scopedId, scopedPath } from "@/app/_lib/storage";
+import { Access, scopedId, scopedPath } from "@/app/_lib/storage";
 import { TORRENTS_DATA_DIR } from "@/app/_lib/data-paths";
 import { logger } from "@/app/_lib/logger";
 import { auditLog } from "@/app/_lib/audit-log";
@@ -157,7 +157,7 @@ export const createTorrentFromFile = async (
     const preferences = await getUserPreferences(user.username);
     const prefs = preferences.torrentPreferences!;
 
-    const source = scopedPath(user, filePath);
+    const source = scopedPath(user, filePath, Access.READ);
     const fullPath = source.absolute;
 
     const lstats = await fs.lstat(fullPath).catch(() => null);
@@ -242,7 +242,7 @@ export const createTorrentFromFile = async (
       name: info.name,
       magnetURI,
       torrentFilePath,
-      sourcePath: scopedId(user, source.absolute),
+      sourcePath: scopedId(source, source.absolute),
       size: stats.size,
       fileCount: 1,
       createdAt: Date.now(),
@@ -320,7 +320,7 @@ export const createTorrentFromFolder = async (
     const preferences = await getUserPreferences(user.username);
     const prefs = preferences.torrentPreferences!;
 
-    const source = scopedPath(user, folderPath);
+    const source = scopedPath(user, folderPath, Access.READ);
     const fullPath = source.absolute;
 
     const lstats = await fs.lstat(fullPath).catch(() => null);
@@ -440,7 +440,7 @@ export const createTorrentFromFolder = async (
       name: info.name,
       magnetURI,
       torrentFilePath,
-      sourcePath: scopedId(user, source.absolute),
+      sourcePath: scopedId(source, source.absolute),
       size: totalSize,
       fileCount: files.length,
       createdAt: Date.now(),

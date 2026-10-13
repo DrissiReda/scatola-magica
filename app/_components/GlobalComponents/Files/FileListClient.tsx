@@ -15,13 +15,15 @@ import ConfirmDeleteFolderModal from "@/app/_components/FeatureComponents/Modals
 import ConfirmBulkDeleteModal from "@/app/_components/FeatureComponents/Modals/ConfirmBulkDeleteModal";
 import ErrorModal from "@/app/_components/FeatureComponents/Modals/ErrorModal";
 import CreateTorrentModal from "@/app/_components/FeatureComponents/Modals/TorrentCreatedModal";
+import ShareModal from "@/app/_components/FeatureComponents/Modals/ShareModal";
 import Progress from "@/app/_components/GlobalComponents/Layout/Progress";
 import Logo from "@/app/_components/GlobalComponents/Layout/Logo";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useFileList } from "@/app/_hooks/useFileList";
 import { useMarquee } from "@/app/_hooks/useMarquee";
 import { useFileTorrents } from "@/app/_hooks/useFileTorrents";
 import { usePreferences } from "@/app/_providers/PreferencesProvider";
+import { SHARED_ROOT } from "@/app/_lib/constants";
 
 interface FileListClientProps {
   files: FileMetadata[];
@@ -120,6 +122,10 @@ export default function FileListClient({
     initialHasMore,
   });
 
+  const [sharing, setSharing] = useState<{ id: string; name: string } | null>(null);
+  const shareHandler = (id: string) =>
+    id.startsWith(SHARED_ROOT) ? undefined : (itemId: string, name: string) => setSharing({ id: itemId, name });
+
   const listRef = useRef<HTMLDivElement>(null);
   const marqueeRef = useRef<HTMLDivElement>(null);
   const { onPointerDown: startMarquee } = useMarquee({
@@ -201,6 +207,7 @@ export default function FileListClient({
                 onEncrypt={() => setEncryptingFolderId(folder.id)}
                 onDecrypt={() => setDecryptingFolderId(folder.id)}
                 onCreateTorrent={torrentsEnabled ? handleCreateTorrent : undefined}
+                onShare={shareHandler(folder.id)}
                 isSelectionMode={isSelectionMode}
                 isSelected={selectedFolderIds.has(folder.id)}
                 onToggleSelect={() => toggleFolderSelection(folder.id)}
@@ -228,6 +235,7 @@ export default function FileListClient({
               onEncrypt={() => setEncryptingFileId(file.id)}
               onDecrypt={() => setDecryptingFileId(file.id)}
               onCreateTorrent={torrentsEnabled ? handleCreateTorrent : undefined}
+              onShare={shareHandler(file.id)}
               isSelectionMode={isSelectionMode}
               isSelected={selectedFileIds.has(file.id)}
               onToggleSelect={() => toggleFileSelection(file.id)}
@@ -269,6 +277,14 @@ export default function FileListClient({
             setMoveFileIds([]);
             clearSelection();
           }}
+        />
+      )}
+
+      {sharing && (
+        <ShareModal
+          itemId={sharing.id}
+          itemName={sharing.name}
+          onClose={() => setSharing(null)}
         />
       )}
 

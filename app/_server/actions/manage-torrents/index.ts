@@ -33,6 +33,7 @@ import parseTorrent from "parse-torrent";
 import {
   isInside,
   resolveIn,
+  Access,
   scopedPath,
   StorageOwner,
   userRoot,
@@ -826,7 +827,7 @@ export const startSeedingCreatedTorrent = async (
       await deleteTorrentSession(user.username, infoHash);
     }
 
-    const sourcePath = scopedPath(user, created.sourcePath).absolute;
+    const sourcePath = scopedPath(user, created.sourcePath, Access.READ).absolute;
 
     const stats = await fs.stat(sourcePath).catch(() => null);
     if (!stats) {

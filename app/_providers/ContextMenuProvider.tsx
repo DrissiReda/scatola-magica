@@ -29,12 +29,14 @@ interface ContextMenuActions {
   onFileDecrypt?: (fileId: string) => void;
   onFileDelete?: (fileId: string) => void;
   onFileCreateTorrent?: (fileId: string, fileName: string) => void;
+  onFileShare?: (fileId: string, fileName: string) => void;
   onFolderRename?: (folderId: string, folderName: string) => void;
   onFolderDownload?: (folderId: string) => void;
   onFolderEncrypt?: (folderId: string) => void;
   onFolderDecrypt?: (folderId: string) => void;
   onFolderDelete?: (folderId: string) => void;
   onFolderCreateTorrent?: (folderId: string, folderName: string) => void;
+  onFolderShare?: (folderId: string, folderName: string) => void;
   onCreateFolder?: () => void;
   onUpload?: () => void;
 }
@@ -122,6 +124,14 @@ export default function ContextMenuProvider({
           });
         }
 
+        if (actions.onFileShare && target.id && target.name) {
+          items.push({
+            label: "Share",
+            icon: "share",
+            onClick: () => actions.onFileShare!(target.id!, target.name!),
+          });
+        }
+
         if (actions.onFileCreateTorrent && target.id && target.name && torrentsEnabled) {
           items.push({
             label: "Create Torrent",
@@ -200,6 +210,14 @@ export default function ContextMenuProvider({
             label: "Download Folder",
             icon: "download",
             onClick: () => actions.onFolderDownload!(target.id!),
+          });
+        }
+
+        if (actions.onFolderShare && target.id && target.name) {
+          items.push({
+            label: "Share",
+            icon: "share",
+            onClick: () => actions.onFolderShare!(target.id!, target.name!),
           });
         }
 

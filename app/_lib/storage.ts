@@ -1,6 +1,10 @@
 import "server-only";
 
 import path from "path";
+import { readShares } from "@/app/_lib/shares";
+import { SHARED_ROOT } from "@/app/_lib/constants";
+
+export { SHARED_ROOT };
 
 export const UPLOAD_DIR = path.resolve(
   process.env.UPLOAD_DIR || "./data/uploads"
@@ -21,9 +25,22 @@ export interface StorageOwner {
   isAdmin: boolean;
 }
 
-export interface ScopedPath {
+export interface IdBase {
+  root: string;
+  idPrefix: string;
+}
+
+export interface ScopedPath extends IdBase {
   absolute: string;
   relative: string;
+}
+
+// MANAGE = delete/rename/move the item itself. Default is the strictest so a
+// forgotten call site fails closed on shared items.
+export enum Access {
+  READ,
+  WRITE,
+  MANAGE,
 }
 
 export class PathEscapeError extends Error {
@@ -51,6 +68,7 @@ export const isValidName = (name: unknown): name is string =>
   name.length <= MAX_NAME_LENGTH &&
   name !== "." &&
   name !== ".." &&
+  name !== SHARED_ROOT &&
   !FORBIDDEN_NAME_CHARS.test(name);
 
 export const userRoot = (owner: StorageOwner): string =>
@@ -66,13 +84,50 @@ export const resolveIn = (base: string, relative = ""): string => {
   return absolute;
 };
 
-export const scopedPath = (
+const _scoped = (base: IdBase, absolute: string): ScopedPath => ({
+  ...base,
+  absolute,
+  relative: _toPosix(path.relative(UPLOAD_DIR, absolute)),
+});
+
+const _sharedPath = (
   owner: StorageOwner,
-  relative = ""
+  relative: string,
+  access: Access
 ): ScopedPath => {
-  const absolute = resolveIn(userRoot(owner), relative);
-  return { absolute, relative: _toPosix(path.relative(UPLOAD_DIR, absolute)) };
+  const [, shareId, ...rest] = relative.split("/");
+  const share = readShares().find(
+    (s) => s.id === shareId && s.users.includes(owner.username)
+  );
+  if (!share) throw new PathEscapeError();
+  if (access !== Access.READ && !share.canEdit) throw new PathEscapeError();
+
+  const root = resolveIn(UPLOAD_DIR, share.path);
+  const absolute = resolveIn(root, rest.join("/"));
+  if (access === Access.MANAGE && absolute === root) throw new PathEscapeError();
+
+  return _scoped({ root, idPrefix: `${SHARED_ROOT}/${shareId}` }, absolute);
 };
 
-export const scopedId = (owner: StorageOwner, absolute: string): string =>
-  _toPosix(path.relative(userRoot(owner), absolute));
+export const isSharedId = (id: string): boolean =>
+  id === SHARED_ROOT || id.startsWith(`${SHARED_ROOT}/`);
+
+export const ownBase = (owner: StorageOwner): IdBase => ({
+  root: userRoot(owner),
+  idPrefix: "",
+});
+
+export const scopedPath = (
+  owner: StorageOwner,
+  relative = "",
+  access = Access.MANAGE
+): ScopedPath => {
+  if (isSharedId(relative)) return _sharedPath(owner, relative, access);
+  return _scoped(ownBase(owner), resolveIn(userRoot(owner), relative));
+};
+
+export const scopedId = (base: IdBase, absolute: string): string => {
+  const relative = _toPosix(path.relative(base.root, absolute));
+  if (!base.idPrefix) return relative;
+  return relative ? `${base.idPrefix}/${relative}` : base.idPrefix;
+};
