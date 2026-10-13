@@ -105,7 +105,7 @@ On your first visit, you'll be redirected to `/auth/setup` to create your admin 
 ## Features
 
 - **File Management:** Browse, upload, download, and organize your files in a hierarchical folder structure.
-- **Search & Sort:** Powerful search functionality and multiple sorting options for finding files quickly.
+- **Search & Sort:** Searches file names, folders, types and file contents (text, office documents, PDFs) through a local index, plus multiple sorting options.
 - **Chunk uploader** Uses chunk technology to upload files in small chunks in parallel. On a local network the upload will be as fast as your internet speed/hard drive rw speed allows.
 - **Drop/paste to upload** This is truly a magic box (scatola magica), drag a file anywhere in any screen (yes, the settings too) and it'll upload it on the dedicated upload folder. You can even copy a file and ctrl+v into the app, I promise it will work!
 - **Pasting text** creates a new `.txt` file automatically
