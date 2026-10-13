@@ -30,16 +30,6 @@ export const formatDuration = (seconds: number): string => {
   return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 };
 
-export const generateUniqueFileName = (originalName: string): string => {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 8);
-  const extension = originalName.split(".").pop();
-  const nameWithoutExt = originalName.replace(`.${extension}`, "");
-  const sanitized = nameWithoutExt.replace(/[^a-zA-Z0-9-_]/g, "_");
-
-  return `${timestamp}-${random}-${sanitized}.${extension}`;
-};
-
 export const getFileMimeType = (fileName: string): string => {
   const extension = fileName.split(".").pop()?.toLowerCase();
 
@@ -97,20 +87,4 @@ export const getFileMimeType = (fileName: string): string => {
   };
 
   return mimeTypes[extension || ""] || "application/octet-stream";
-};
-
-export const calculateFileHash = async (file: File): Promise<string> => {
-  const buffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-};
-
-export const getFilePath = (
-  fileName: string,
-  folderPath?: string
-): { fullPath: string; relativePath: string } => {
-  const fullPath = folderPath ? `${folderPath}/${fileName}` : fileName;
-  const relativePath = `/uploads/${fullPath}`;
-  return { fullPath, relativePath };
 };

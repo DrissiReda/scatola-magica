@@ -19,7 +19,7 @@ export default function UserMenu() {
 }
 
 const UserMenuContent = ({ user }: { user: CurrentUser }) => {
-  const { username, isAdmin } = user;
+  const { isAdmin } = user;
   const router = useRouter();
   const [showCreateUser, setShowCreateUser] = useState(false);
 

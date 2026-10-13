@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Logo from "@/app/_components/GlobalComponents/Layout/Logo";
 import { useUploadOverlay } from "@/app/_providers/UploadOverlayProvider";

@@ -9,7 +9,6 @@ import { verifyPassword } from "@/app/_server/actions/pgp";
 import {
   storeE2EPassword,
   getStoredE2EPassword,
-  hasStoredE2EPassword,
 } from "@/app/_lib/chunk-encryption";
 import { usePreferences } from "@/app/_providers/PreferencesProvider";
 
@@ -29,11 +28,9 @@ export default function E2EPasswordModal({
   const [rememberForSession, setRememberForSession] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
-  const [hasStoredPassword, setHasStoredPassword] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setHasStoredPassword(hasStoredE2EPassword());
 
       if (encryptionKey) {
         (async () => {

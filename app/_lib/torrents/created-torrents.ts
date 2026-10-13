@@ -3,7 +3,6 @@ import "server-only";
 import fs from "fs/promises";
 import path from "path";
 import { lock, unlock } from "proper-lockfile";
-import { getUserPreferences } from "@/app/_lib/preferences-store";
 import { encryptJsonFor, decryptJsonFor } from "@/app/_lib/pgp";
 import { TORRENTS_DATA_DIR } from "@/app/_lib/data-paths";
 import { logger } from "@/app/_lib/logger";

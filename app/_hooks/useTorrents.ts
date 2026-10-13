@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getTorrents } from "@/app/_server/actions/manage-torrents";
 import { TorrentSession } from "@/app/_types/torrent";
-import { usePreferences } from "@/app/_providers/PreferencesProvider";
 
 interface UseTorrentsResult {
   torrents: TorrentSession[];
@@ -20,7 +19,6 @@ export const useTorrents = (
   limit: number = 50,
   pollInterval: number = 10000
 ): UseTorrentsResult => {
-  const { encryptionKey, torrentPreferences } = usePreferences();
   const [torrents, setTorrents] = useState<TorrentSession[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);

@@ -3,15 +3,11 @@
 import { useFolders } from "@/app/_providers/FoldersProvider";
 import Logo from "@/app/_components/GlobalComponents/Layout/Logo";
 
-interface FilesPageWrapperProps {
-  children: React.ReactNode;
-  folderPath: string | null;
-}
-
 export default function FilesPageWrapper({
   children,
-  folderPath,
-}: FilesPageWrapperProps) {
+}: {
+  children: React.ReactNode;
+}) {
   const { loading } = useFolders();
 
   if (loading) {

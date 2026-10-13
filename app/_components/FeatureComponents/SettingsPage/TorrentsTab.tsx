@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateUserPreferences } from "@/app/_lib/preferences";
 import { usePreferences } from "@/app/_providers/PreferencesProvider";
@@ -11,7 +11,7 @@ import Button from "@/app/_components/GlobalComponents/Buttons/Button";
 
 export default function TorrentsTab() {
   const router = useRouter();
-  const { user, torrentPreferences, encryptionKey } = usePreferences();
+  const { user, torrentPreferences } = usePreferences();
 
   const [seedRatio, setSeedRatio] = useState(
     torrentPreferences?.seedRatio ?? 1.0

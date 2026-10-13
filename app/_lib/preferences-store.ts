@@ -13,7 +13,7 @@ import { readJson, updateJson } from "@/app/_lib/json-store";
 
 const PREFERENCES_FILE = path.join(CONFIG_DIR, "preferences.json");
 
-export const DEFAULT_TRACKERS = [
+const DEFAULT_TRACKERS = [
   "udp://tracker.opentrackr.org:1337/announce",
   "udp://open.demonii.com:1337/announce",
   "udp://tracker.openbittorrent.com:6969/announce",
@@ -21,7 +21,7 @@ export const DEFAULT_TRACKERS = [
   "udp://tracker.torrent.eu.org:451/announce",
 ];
 
-export const DEFAULT_TORRENT_PREFERENCES: TorrentPreferences = {
+const DEFAULT_TORRENT_PREFERENCES: TorrentPreferences = {
   seedRatio: 1.0,
   autoStartTorrents: true,
   maxActiveTorrents: 5,

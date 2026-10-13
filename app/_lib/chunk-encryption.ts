@@ -3,7 +3,6 @@
 const ALGORITHM = "AES-GCM";
 const KEY_LENGTH = 256;
 const IV_LENGTH = 12;
-const SALT_LENGTH = 16;
 const AUTH_TAG_LENGTH_BITS = 128;
 const E2E_PASSWORD_KEY = "e2e-key";
 
@@ -60,39 +59,7 @@ const _keyFromPwd = async (
   );
 };
 
-export const encryptChunk = async (
-  chunk: ArrayBuffer,
-  password: string
-): Promise<ArrayBuffer> => {
-  const subtle = _getWebCrypto();
-  const salt = _getRandomValues(new Uint8Array(SALT_LENGTH));
-  const iv = _getRandomValues(new Uint8Array(IV_LENGTH));
-  const key = await _keyFromPwd(password, salt);
-
-  const ivBuffer = new ArrayBuffer(IV_LENGTH);
-  new Uint8Array(ivBuffer).set(iv);
-
-  const encryptedContent = await subtle.encrypt(
-    {
-      name: ALGORITHM,
-      iv: ivBuffer,
-      tagLength: AUTH_TAG_LENGTH_BITS,
-    },
-    key,
-    chunk
-  );
-
-  const result = new Uint8Array(
-    SALT_LENGTH + IV_LENGTH + encryptedContent.byteLength
-  );
-  result.set(salt, 0);
-  result.set(iv, SALT_LENGTH);
-  result.set(new Uint8Array(encryptedContent), SALT_LENGTH + IV_LENGTH);
-
-  return result.buffer;
-};
-
-export const encryptPasswordWithKey = async (
+const encryptPasswordWithKey = async (
   password: string,
   encryptionKey: string
 ): Promise<string> => {
@@ -132,7 +99,7 @@ export const encryptPasswordWithKey = async (
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 };
 
-export const decryptPasswordWithKey = async (
+const decryptPasswordWithKey = async (
   encryptedPassword: string,
   encryptionKey: string
 ): Promise<string | null> => {
@@ -195,10 +162,6 @@ export const getStoredE2EPassword = async (
   const encrypted = sessionStorage.getItem(E2E_PASSWORD_KEY);
   if (!encrypted) return null;
   return await decryptPasswordWithKey(encrypted, encryptionKey);
-};
-
-export const clearStoredE2EPassword = (): void => {
-  sessionStorage.removeItem(E2E_PASSWORD_KEY);
 };
 
 export const hasStoredE2EPassword = (): boolean => {

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Modal from "@/app/_components/GlobalComponents/Layout/Modal";
 import UploadDropZone from "@/app/_components/FeatureComponents/UploadPage/UploadDropZone";
 import UploadFileList from "@/app/_components/FeatureComponents/UploadPage/UploadFileList";
-import Warning from "@/app/_components/GlobalComponents/Layout/Warning";
 import E2EPasswordModal from "@/app/_components/FeatureComponents/Modals/E2EPasswordModal";
 import { useUploadPage } from "@/app/_hooks/useUploadPage";
 import { UploadStatus } from "@/app/_types/enums";
@@ -37,7 +36,6 @@ const UploadModal = ({
   const {
     files,
     isDragging,
-    selectedFolderPath,
     setSelectedFolderPath,
     setE2eEncryption,
     handleFileSelect,

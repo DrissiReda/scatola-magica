@@ -30,10 +30,8 @@ const PokemonSprite = ({ src, name }: { src: string; name: string }) => (
 export default function ThemeSelector() {
   const {
     pokemonTheme,
-    colorMode,
     resolvedColorMode,
     setPokemonTheme,
-    setColorMode,
     toggleColorMode,
   } = useTheme();
   const router = useRouter();

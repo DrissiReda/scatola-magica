@@ -1,6 +1,6 @@
 "use client";
 
-export interface RadioOption {
+interface RadioOption {
   value: string;
   label: string;
   description?: string;

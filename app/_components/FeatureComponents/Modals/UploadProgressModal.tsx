@@ -53,11 +53,6 @@ export default function UploadProgressModal({
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [hasKeys, setHasKeys] = useState(false);
   const [keyStatusLoaded, setKeyStatusLoaded] = useState(false);
-  const [pendingUpload, setPendingUpload] = useState<{
-    type: "files" | "filesWithPaths";
-    files?: FileList;
-    filesWithPaths?: FileWithPath[];
-  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -91,7 +86,6 @@ export default function UploadProgressModal({
       } else if (initialFiles && initialFiles.length > 0) {
         handleFileSelect(initialFiles, initialFolderPath, encryption);
       }
-      setPendingUpload(null);
     },
     [
       initialFiles,
@@ -115,7 +109,6 @@ export default function UploadProgressModal({
 
   const handlePasswordModalClose = useCallback(() => {
     setShowPasswordModal(false);
-    setPendingUpload(null);
     setE2eEncryption(undefined);
     startUploadWithFiles();
   }, [setE2eEncryption, startUploadWithFiles]);
@@ -154,19 +147,9 @@ export default function UploadProgressModal({
             return;
           }
 
-          setPendingUpload({
-            type: initialFilesWithPaths ? "filesWithPaths" : "files",
-            files: initialFiles || undefined,
-            filesWithPaths: initialFilesWithPaths || undefined,
-          });
           setShowPasswordModal(true);
         })();
       } else {
-        setPendingUpload({
-          type: initialFilesWithPaths ? "filesWithPaths" : "files",
-          files: initialFiles || undefined,
-          filesWithPaths: initialFilesWithPaths || undefined,
-        });
         setShowPasswordModal(true);
       }
     } else {

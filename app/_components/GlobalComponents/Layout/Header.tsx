@@ -13,7 +13,6 @@ export default function Header({
   showHelpButton = true,
   showTorrentsButton = true,
   showFilesButton = true,
-  showSettingsButton = true,
   showThemeSelector = true,
   showUserMenu = true,
   docked = false,
@@ -21,7 +20,6 @@ export default function Header({
   showHelpButton?: boolean;
   showTorrentsButton?: boolean;
   showFilesButton?: boolean;
-  showSettingsButton?: boolean;
   showThemeSelector?: boolean;
   showUserMenu?: boolean;
   docked?: boolean;

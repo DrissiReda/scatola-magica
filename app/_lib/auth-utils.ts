@@ -43,7 +43,7 @@ export const findUser = async (username: string): Promise<User | null> => {
   return users.find((u) => u.username === username) ?? null;
 };
 
-export const readSessions = (): Promise<SessionMap> =>
+const readSessions = (): Promise<SessionMap> =>
   readJson<SessionMap>(SESSIONS_FILE, {});
 
 export const updateSessions = <R>(

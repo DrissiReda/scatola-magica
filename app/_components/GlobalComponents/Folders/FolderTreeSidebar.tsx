@@ -10,13 +10,11 @@ import FolderTreeNode from "@/app/_components/GlobalComponents/Folders/FolderTre
 interface FolderTreeSidebarProps {
   folderTreeHook?: ReturnType<typeof useFolderTree>;
   showSearch?: boolean;
-  showCreate?: boolean;
 }
 
 export default function FolderTreeSidebar({
   folderTreeHook: providedHook,
   showSearch = false,
-  showCreate = true,
 }: FolderTreeSidebarProps) {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const pathname = usePathname();

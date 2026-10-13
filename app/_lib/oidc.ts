@@ -64,7 +64,7 @@ export const appUrl = (request: NextRequest): string =>
 export const callbackUrl = (request: NextRequest): string =>
   `${appUrl(request)}/api/oidc/callback`;
 
-export const discoveryUrl = (issuer: string): string =>
+const discoveryUrl = (issuer: string): string =>
   issuer.includes(WELL_KNOWN)
     ? issuer
     : `${issuer.replace(/\/+$/, "")}/${WELL_KNOWN}`;
