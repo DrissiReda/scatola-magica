@@ -142,6 +142,17 @@ services:
 
 Valkey also relays live update events between instances, so every open browser refreshes when files change, no matter which instance it is connected to. If Valkey goes down the app keeps working and simply reads from disk until it comes back.
 
+## High Availability (shared volume)
+
+Run several instances on the same `uploads` and `config` volumes (NFS, CephFS, etc.) behind any load balancer, plus the Valkey sidecar above. No sticky sessions needed.
+
+- Users, sessions, shares, upload chunks and office editing state live in the shared volumes, guarded by file locks.
+- Every write is published on Valkey: all instances drop the affected cached listings, update their search index and refresh their open browsers right away. Nothing polls.
+- Set `APP_URL` (or `OFFICE_APP_URL`) to the load balancer URL on every instance so co-editing sessions are shared.
+- The load balancer must skip a dead instance within a few seconds (health checks, or e.g. nginx `proxy_connect_timeout 2s`): office servers give up on a save after ~30 s, and Collabora then drops the unsaved document.
+- Files changed outside the app are picked up by the instance whose file watcher sees them (inotify does not report writes made by other NFS clients).
+- Torrent downloads run on the instance that started them.
+
 ## Platform Configuration
 
 ```yaml
