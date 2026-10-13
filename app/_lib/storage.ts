@@ -1,7 +1,7 @@
 import "server-only";
 
 import path from "path";
-import { readShares } from "@/app/_lib/shares";
+import { readShares, shareByLink } from "@/app/_lib/shares";
 import { SHARED_ROOT } from "@/app/_lib/constants";
 
 export { SHARED_ROOT };
@@ -107,6 +107,15 @@ const _sharedPath = (
   if (access === Access.MANAGE && absolute === root) throw new PathEscapeError();
 
   return _scoped({ root, idPrefix: `${SHARED_ROOT}/${shareId}` }, absolute);
+};
+
+// Public links are read-only and scoped to the shared item.
+export const linkedPath = (token: string, relative = ""): ScopedPath => {
+  const share = shareByLink(token);
+  if (!share) throw new PathEscapeError();
+
+  const root = resolveIn(UPLOAD_DIR, share.path);
+  return _scoped({ root, idPrefix: "" }, resolveIn(root, relative));
 };
 
 export const isSharedId = (id: string): boolean =>

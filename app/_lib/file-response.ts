@@ -1,8 +1,11 @@
 import "server-only";
 
 import { createReadStream } from "fs";
+import { stat } from "fs/promises";
+import path from "path";
 import { Readable } from "stream";
 import { NextResponse } from "next/server";
+import { getFileMimeType } from "@/app/_lib/file-utils";
 import { PathEscapeError } from "@/app/_lib/storage";
 import { logger } from "@/app/_lib/logger";
 
@@ -25,6 +28,31 @@ export const contentDisposition = (
 
 export const streamFile = (absolute: string): ReadableStream<Uint8Array> =>
   Readable.toWeb(createReadStream(absolute)) as ReadableStream<Uint8Array>;
+
+export const downloadResponse = async (
+  absolute: string,
+  inline: boolean
+): Promise<NextResponse> => {
+  const stats = await stat(absolute).catch(() => null);
+  if (!stats?.isFile()) {
+    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  }
+
+  const fileName = path.basename(absolute);
+  const mimeType = getFileMimeType(fileName);
+  const viewInline = inline && isInlineType(mimeType);
+
+  const headers: Record<string, string> = {
+    "Content-Type": mimeType,
+    "Content-Length": stats.size.toString(),
+    "Content-Disposition": contentDisposition(viewInline ? "inline" : "attachment", fileName),
+    "Cache-Control": "private, no-store",
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (mimeType !== PDF_TYPE) headers["Content-Security-Policy"] = SANDBOX_CSP;
+
+  return new NextResponse(streamFile(absolute), { headers });
+};
 
 export const pathErrorResponse = (
   error: unknown,

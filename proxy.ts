@@ -10,6 +10,7 @@ const PUBLIC_PREFIXES = [
   "/api/auth/register",
   "/api/oidc/",
   "/auth",
+  "/s/",
 ];
 
 const LOGIN_PATH = "/auth/login";

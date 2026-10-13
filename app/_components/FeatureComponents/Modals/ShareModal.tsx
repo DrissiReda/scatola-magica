@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/app/_components/GlobalComponents/Layout/Modal";
 import Button from "@/app/_components/GlobalComponents/Buttons/Button";
@@ -24,20 +24,32 @@ export default function ShareModal({ itemId, itemName, onClose }: ShareModalProp
   const [users, setUsers] = useState<string[]>([]);
   const [canEdit, setCanEdit] = useState(false);
   const [wasShared, setWasShared] = useState(false);
+  const [withLink, setWithLink] = useState(false);
+  const [link, setLink] = useState<string>();
   const [known, setKnown] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    getShare(itemId).then((result) => {
+  const load = useCallback(
+    () =>
+      getShare(itemId).then((result) => {
       if (!result.data) return;
       setUsers(result.data.users);
       setCanEdit(result.data.canEdit);
-      setWasShared(result.data.users.length > 0);
-    });
+      setLink(result.data.link);
+      setWithLink(!!result.data.link);
+      setWasShared(result.data.users.length > 0 || !!result.data.link);
+    }),
+    [itemId]
+  );
+
+  useEffect(() => {
+    load();
     listUsernames().then(setKnown);
-  }, [itemId]);
+  }, [load]);
+
+  const linkUrl = link ? `${window.location.origin}/s/${link}` : "";
 
   const addDraft = () => {
     const name = draft.trim();
@@ -45,13 +57,15 @@ export default function ShareModal({ itemId, itemName, onClose }: ShareModalProp
     setDraft("");
   };
 
-  const save = async (nextUsers: string[]) => {
+  const save = async (nextUsers: string[], nextLink: boolean) => {
     setIsSaving(true);
     setError("");
-    const result = await updateShare(itemId, { users: nextUsers, canEdit });
+    const result = await updateShare(itemId, { users: nextUsers, canEdit, withLink: nextLink });
     setIsSaving(false);
     if (!result.success) return setError(result.error || "Failed to share");
     router.refresh();
+    // A new link stays on screen so it can be copied.
+    if (nextLink && !link) return load();
     onClose();
   };
 
@@ -103,12 +117,24 @@ export default function ShareModal({ itemId, itemName, onClose }: ShareModalProp
         )}
 
         <Switch label="Can edit" checked={canEdit} onChange={setCanEdit} />
+        <Switch label="Public link (view only)" checked={withLink} onChange={setWithLink} />
+
+        {withLink && link && (
+          <div className="flex items-center gap-2">
+            <Input value={linkUrl} readOnly aria-label="Public link" onFocus={(e) => e.target.select()} />
+            <IconButton
+              icon="content_copy"
+              ariaLabel="Copy link"
+              onClick={() => navigator.clipboard?.writeText(linkUrl)}
+            />
+          </div>
+        )}
 
         <div className="flex items-center justify-end gap-3 pt-2">
           {wasShared && (
             <Button
               variant="text"
-              onClick={() => save([])}
+              onClick={() => save([], false)}
               disabled={isSaving}
               className="mr-auto text-error"
             >
@@ -120,8 +146,8 @@ export default function ShareModal({ itemId, itemName, onClose }: ShareModalProp
           </Button>
           <Button
             variant="filled"
-            onClick={() => save(users)}
-            disabled={isSaving || (users.length === 0 && !wasShared)}
+            onClick={() => save(users, withLink)}
+            disabled={isSaving || (users.length === 0 && !withLink && !wasShared)}
           >
             Save
           </Button>

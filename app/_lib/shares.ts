@@ -12,6 +12,7 @@ export interface Share {
   path: string;
   users: string[];
   canEdit: boolean;
+  link?: string;
   createdAt: string;
 }
 
@@ -47,33 +48,38 @@ export const shareAt = (relative: string): Share | null =>
 
 export const isShared = (relative: string): boolean => !!shareAt(relative);
 
+export const shareByLink = (token: string): Share | null =>
+  (token && readShares().find((s) => s.link === token)) || null;
+
+const _token = (bytes: number) => crypto.randomBytes(bytes).toString("base64url");
+
 export const saveShare = (
   owner: string,
   relative: string,
   users: string[],
-  canEdit: boolean
+  canEdit: boolean,
+  withLink: boolean
 ): Promise<void> =>
   _update((shares) => {
     const index = shares.findIndex((s) => s.path === relative);
 
-    if (users.length === 0) {
+    if (users.length === 0 && !withLink) {
       if (index >= 0) shares.splice(index, 1);
       return;
     }
 
-    if (index >= 0) {
-      Object.assign(shares[index], { users, canEdit });
-      return;
-    }
-
-    shares.push({
-      id: crypto.randomBytes(9).toString("base64url"),
+    const share = shares[index] ?? {
+      id: _token(9),
       owner,
       path: relative,
+      createdAt: new Date().toISOString(),
+    };
+    Object.assign(share, {
       users,
       canEdit,
-      createdAt: new Date().toISOString(),
+      link: withLink ? share.link || _token(18) : undefined,
     });
+    if (index < 0) shares.push(share);
   });
 
 const _isWithin = (relative: string, base: string): boolean =>

@@ -15,6 +15,7 @@ const UNAUTHORIZED = { success: false, error: "Unauthorized" };
 export interface ShareSettings {
   users: string[];
   canEdit: boolean;
+  link?: string;
 }
 
 const _ownTarget = async (itemId: string) => {
@@ -33,7 +34,11 @@ export const getShare = async (
     const share = shareAt(own.target.relative);
     return {
       success: true,
-      data: { users: share?.users ?? [], canEdit: share?.canEdit ?? false },
+      data: {
+        users: share?.users ?? [],
+        canEdit: share?.canEdit ?? false,
+        link: share?.link,
+      },
     };
   } catch (error) {
     logger.warn(SCOPE, `Cannot read share for ${itemId}`, error);
@@ -43,7 +48,7 @@ export const getShare = async (
 
 export const updateShare = async (
   itemId: string,
-  settings: ShareSettings
+  settings: { users: string[]; canEdit: boolean; withLink: boolean }
 ): Promise<ServerActionResponse> => {
   try {
     const own = await _ownTarget(itemId);
@@ -56,10 +61,16 @@ export const updateShare = async (
       return { success: false, error: `Unknown user: ${unknown.join(", ")}` };
     }
 
-    await saveShare(own.user.username, own.target.relative, users, !!settings.canEdit);
+    await saveShare(
+      own.user.username,
+      own.target.relative,
+      users,
+      !!settings.canEdit,
+      !!settings.withLink
+    );
     await auditLog("share:update", {
       resource: own.target.relative,
-      details: { users, canEdit: !!settings.canEdit },
+      details: { users, canEdit: !!settings.canEdit, link: !!settings.withLink },
       success: true,
     });
     await bustFileCache(own.target.absolute);
