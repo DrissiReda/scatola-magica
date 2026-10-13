@@ -54,7 +54,7 @@ const _decodeAesPath = (encoded: string, key: string): string | null => {
   }
 };
 
-export const decryptPathWithKey = (encoded: string, key: string): string =>
+const decryptPathWithKey = (encoded: string, key: string): string =>
   key
     ? _decodeTokenPath(encoded, key) ?? _decodeAesPath(encoded, key) ?? encoded
     : encoded;

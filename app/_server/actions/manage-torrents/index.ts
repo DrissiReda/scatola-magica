@@ -852,20 +852,6 @@ export const startSeedingCreatedTorrent = async (
       folderPath: stats.isDirectory() ? created.sourcePath : undefined,
     };
 
-    const state: TorrentState = {
-      infoHash: created.infoHash,
-      status: TorrentStatus.INITIALIZING,
-      downloadSpeed: 0,
-      uploadSpeed: 0,
-      downloaded: 0,
-      uploaded: 0,
-      progress: 1,
-      ratio: 0,
-      numPeers: 0,
-      timeRemaining: 0,
-      addedAt: Date.now(),
-    };
-
     await saveTorrentSession(user.username, metadata);
 
     const preferences = await getUserPreferences(user.username);

@@ -15,7 +15,7 @@ export const THUMBNAIL_DIR = path.resolve(
   process.env.THUMBNAIL_CACHE_DIR || "./data/thumbnails"
 );
 
-export const PATH_ESCAPE_ERROR = "Nice try, Houdini. Path is outside your box";
+const PATH_ESCAPE_ERROR = "Nice try, Houdini. Path is outside your box";
 
 const MAX_NAME_LENGTH = 255;
 const FORBIDDEN_NAME_CHARS = /[/\\\0]/;

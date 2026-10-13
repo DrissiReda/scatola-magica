@@ -9,7 +9,6 @@ import {
 } from "@/app/_server/actions/user";
 import Button from "@/app/_components/GlobalComponents/Buttons/Button";
 import IconButton from "@/app/_components/GlobalComponents/Buttons/IconButton";
-import Icon from "@/app/_components/GlobalComponents/Icons/Icon";
 
 export default function ApiKeySection() {
   const [hasApiKey, setHasApiKey] = useState(false);

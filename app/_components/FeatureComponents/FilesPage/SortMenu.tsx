@@ -18,7 +18,7 @@ const sortOptions = [
 export default function SortMenu() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const currentSort =
     (searchParams.get("sortBy") as SortBy) || SortBy.DATE_DESC;

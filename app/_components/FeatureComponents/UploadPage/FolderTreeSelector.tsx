@@ -6,7 +6,7 @@ import {
   type FolderMetadata,
 } from "@/app/_server/actions/folders";
 import Card from "@/app/_components/GlobalComponents/Cards/Card";
-import FolderTree from "@/app/_components/GlobalComponents/Folders/FolderTree";
+import FolderTreeDropdown from "@/app/_components/GlobalComponents/Folders/FolderTreeDropdown";
 
 interface FolderTreeSelectorProps {
   selectedFolderId?: string;
@@ -80,12 +80,9 @@ export default function FolderTreeSelector({
         </label>
         <Card className="relative w-full border-dashed border-outline-variant border-2 bg-surface h-64 flex flex-col overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto">
-            <FolderTree
+            <FolderTreeDropdown
               selectedFolderId={selectedFolderId}
               onFolderSelect={handleFolderSelect}
-              variant="dropdown"
-              showSearch={true}
-              showCreate={true}
               maxHeight="max-h-64"
             />
           </div>
@@ -120,12 +117,9 @@ export default function FolderTreeSelector({
         {isOpen && (
           <Card className="absolute z-[60] w-full mt-1 shadow-lg border border-outline bg-surface max-h-64 overflow-hidden flex flex-col">
             <div className="overflow-y-auto flex-1">
-              <FolderTree
+              <FolderTreeDropdown
                 selectedFolderId={selectedFolderId}
                 onFolderSelect={handleFolderSelect}
-                variant="dropdown"
-                showSearch={true}
-                showCreate={true}
                 maxHeight="max-h-64"
               />
             </div>

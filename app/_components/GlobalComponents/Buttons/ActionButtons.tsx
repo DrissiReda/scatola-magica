@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import IconButton from "@/app/_components/GlobalComponents/Buttons/IconButton";
 import CreateFolderModal from "@/app/_components/FeatureComponents/Modals/CreateFolderModal";
 import UploadEncryptionModal from "@/app/_components/FeatureComponents/Modals/UploadEncryptionModal";
@@ -26,7 +25,6 @@ export default function ActionButtons({
     onUpload,
     parentId = null,
 }: ActionButtonsProps) {
-    const router = useRouter();
     const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
     const [isEncryptionModalOpen, setIsEncryptionModalOpen] = useState(false);
     const [isTorrentModalOpen, setIsTorrentModalOpen] = useState(false);

@@ -9,7 +9,7 @@ import {
   verifyApiKey,
 } from "@/app/_lib/auth-utils";
 
-export enum AuthMethod {
+enum AuthMethod {
   SESSION = "session",
   API_KEY = "apikey",
 }

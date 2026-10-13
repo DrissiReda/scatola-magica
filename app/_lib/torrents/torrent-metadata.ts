@@ -7,7 +7,7 @@ import { ServerActionResponse } from "@/app/_types";
 import parseTorrent from "parse-torrent";
 import { getTorrentClient } from "@/app/_lib/torrents/webtorrent-client";
 
-export interface TorrentFileInfo {
+interface TorrentFileInfo {
   path: string;
   length: number;
   selected: boolean;

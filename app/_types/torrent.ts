@@ -1,4 +1,4 @@
-export interface TorrentFileInfo {
+interface TorrentFileInfo {
   name: string;
   path: string;
   length: number;

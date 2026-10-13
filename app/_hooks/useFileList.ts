@@ -759,12 +759,6 @@ export const useFileList = ({
     );
   };
 
-  const toggleViewMode = () => {
-    const newMode =
-      viewMode === FileViewMode.GRID ? FileViewMode.LIST : FileViewMode.GRID;
-    handleViewModeChange(newMode);
-  };
-
   useEffect(() => {
     registerActions({
       onSearch: () => {

@@ -1,4 +1,4 @@
-export enum LogLevel {
+enum LogLevel {
   DEBUG = "DEBUG",
   INFO = "INFO",
   WARN = "WARN",

@@ -3,7 +3,7 @@ import "server-only";
 import path from "path";
 import { UPLOAD_DIR } from "@/app/_lib/storage";
 
-export enum ScopeKind {
+enum ScopeKind {
   ALL = "all",
   ROOT = "root",
   DIR = "dir",

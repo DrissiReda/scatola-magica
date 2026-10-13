@@ -21,7 +21,7 @@ const _toCurrentUser = (user: User): CurrentUser => ({
   colorMode: user.colorMode,
 });
 
-export const getSessionId = async (): Promise<string | null> => {
+const getSessionId = async (): Promise<string | null> => {
   const cookieStore = await cookies();
   return cookieStore.get(COOKIE_NAME)?.value ?? null;
 };

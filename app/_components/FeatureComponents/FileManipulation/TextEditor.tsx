@@ -40,7 +40,7 @@ import "prismjs/themes/prism-tomorrow.css";
 import { saveFileContent } from "@/app/_server/actions/editor";
 import MarkdownRenderer from "../../GlobalComponents/Markdown/MarkdownRenderer";
 
-export const EXTENSION_TO_LANGUAGE: Record<string, string> = {
+const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   js: "javascript",
   jsx: "jsx",
   ts: "typescript",

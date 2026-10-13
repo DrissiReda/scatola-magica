@@ -130,7 +130,7 @@ export default function MyTorrentsList() {
   return (
     <div className="space-y-4">
       {createdTorrents.map((torrent) => {
-        const { metadata, state } = torrent;
+        const { metadata } = torrent;
         const isActioning = actioningTorrent === metadata.infoHash;
         const seedingTorrent = torrents.find(
           (t) =>

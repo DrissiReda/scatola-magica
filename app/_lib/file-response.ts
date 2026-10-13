@@ -15,7 +15,7 @@ export const SANDBOX_CSP =
 const INLINE_PREFIXES = ["image/", "video/", "audio/", "text/"];
 const PDF_TYPE = "application/pdf";
 
-export const isInlineType = (mimeType: string): boolean =>
+const isInlineType = (mimeType: string): boolean =>
   mimeType === PDF_TYPE || INLINE_PREFIXES.some((p) => mimeType.startsWith(p));
 
 export const contentDisposition = (

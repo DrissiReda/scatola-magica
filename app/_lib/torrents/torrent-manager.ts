@@ -45,7 +45,7 @@ class TorrentManager extends EventEmitter {
     seedRatio: number,
     onUpdate: (state: TorrentState) => Promise<void>
   ): Promise<void> {
-    const { metadata, state } = session;
+    const { metadata } = session;
     const infoHash = metadata.infoHash;
 
     if (this.torrents.has(infoHash)) {

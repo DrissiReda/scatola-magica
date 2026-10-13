@@ -145,5 +145,3 @@ export const getTorrentClient = (
   downloadLimit?: number,
   uploadLimit?: number
 ) => WebTorrentManager.getInstance().getClient(downloadLimit, uploadLimit);
-export const shutdownTorrentClient = () =>
-  WebTorrentManager.getInstance().shutdown();

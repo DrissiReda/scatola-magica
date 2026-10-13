@@ -83,7 +83,7 @@ function SettingsPageContent() {
 
   return (
     <FilesPageBorderWrapper>
-      <FilesPageWrapper folderPath="">
+      <FilesPageWrapper>
         <div className="flex flex-1 overflow-hidden min-h-0">
           <MobileSidebarWrapper
             title="Settings"

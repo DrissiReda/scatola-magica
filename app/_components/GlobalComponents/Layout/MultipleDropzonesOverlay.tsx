@@ -60,7 +60,7 @@ export default function MultipleDropzonesOverlay({
   return (
     <div className="fixed w-[calc(100vw-10px)] h-[calc(100vh-10px)] top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-[100] backdrop-blur-[1.5px] pointer-events-none">
       <div className="grid grid-cols-2 grid-rows-2 h-full w-full pointer-events-auto">
-        {zones.map((zone, index) => (
+        {zones.map((zone) => (
           <div
             key={zone.id}
             className={`

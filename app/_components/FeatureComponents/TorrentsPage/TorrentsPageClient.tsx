@@ -8,10 +8,8 @@ import DownloadsList from "@/app/_components/FeatureComponents/TorrentsPage/Down
 import AddMagnetModal from "@/app/_components/FeatureComponents/Modals/AddMagnetModal";
 import AddTorrentModal from "@/app/_components/FeatureComponents/Modals/AddTorrentModal";
 import DeepLinkHandler from "@/app/_components/FeatureComponents/TorrentsPage/DeepLinkHandler";
-import Icon from "@/app/_components/GlobalComponents/Icons/Icon";
 import Select from "@/app/_components/GlobalComponents/Form/Select";
 import DropdownMenu, {
-  DropdownMenuItem,
 } from "@/app/_components/GlobalComponents/Form/DropdownMenu";
 import TorrentsMobileBottomBar from "@/app/_components/FeatureComponents/TorrentsPage/TorrentsMobileBottomBar";
 import TorrentsSidebar from "@/app/_components/FeatureComponents/TorrentsPage/TorrentsSidebar";
@@ -29,7 +27,6 @@ type Tab = "my-torrents" | "downloads";
 
 function TorrentsPageContent() {
   const searchParams = useSearchParams();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isTorrentModalOpen, setIsTorrentModalOpen] = useState(false);
   const [isMagnetModalOpen, setIsMagnetModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("my-torrents");
@@ -166,7 +163,7 @@ function TorrentsPageContent() {
 
   return (
     <FilesPageBorderWrapper>
-      <FilesPageWrapper folderPath="">
+      <FilesPageWrapper>
         <div className="flex flex-1 overflow-hidden min-h-0">
           <MobileSidebarWrapper
             title="Torrents"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import Logo from "@/app/_components/GlobalComponents/Layout/Logo";
 import { useUploadOverlay } from "@/app/_providers/UploadOverlayProvider";

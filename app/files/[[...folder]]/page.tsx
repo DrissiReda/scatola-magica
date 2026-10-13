@@ -39,7 +39,7 @@ export default async function FilesPage(props: PageProps) {
   return (
     <FilesPageBorderWrapper>
       <SidebarProvider>
-        <FilesPageWrapper folderPath={folderPath}>
+        <FilesPageWrapper>
           <div className="flex flex-1 overflow-hidden min-h-0">
             <MobileSidebarWrapper
               sidebar={<FolderTreeSidebar key="folder-tree" />}

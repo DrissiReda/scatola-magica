@@ -176,7 +176,7 @@ export default function FolderTreeNode({
           href={folderHref}
           data-folder-id={folder.id}
           className="block"
-          onClick={(e) => {
+          onClick={() => {
             if (hasChildren && !folderIsExpanded) {
               toggleFolder(folder.id);
             }

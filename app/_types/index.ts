@@ -32,25 +32,6 @@ export interface UploadProgress {
   chunkMap?: ChunkState[];
 }
 
-export interface ChunkMetadata {
-  uploadId: string;
-  chunkIndex: number;
-  totalChunks: number;
-  chunkSize: number;
-  fileName: string;
-  fileSize: number;
-}
-
-export interface UploadSession {
-  id: string;
-  fileName: string;
-  fileSize: number;
-  totalChunks: number;
-  receivedChunks: Set<number>;
-  createdAt: number;
-  expiresAt: number;
-}
-
 export interface ServerActionResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -95,15 +76,7 @@ export interface CurrentUser {
   colorMode?: "light" | "dark";
 }
 
-export interface Session {
-  sessionId: string;
-  username: string;
-  createdAt: string;
-  expiresAt: string;
-  authMethod: "normal" | "sso";
-}
-
-export interface ArchiveEntry {
+interface ArchiveEntry {
   name: string;
   size: number;
   isDirectory: boolean;
